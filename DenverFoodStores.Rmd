@@ -1,0 +1,71 @@
+---
+title: "DenverFoodStores"
+author: "cyorir"
+date: "September 25, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Denver Food Store map
+
+This file contains maps of Denver's food stores, based on data from Denver's Open Data Catalog:
+
+https://www.denvergov.org/opendata/dataset/city-and-county-of-denver-food-stores
+
+Here is every food store and its name:
+
+```{r foodStores}
+library(leaflet)
+data <- read.csv("food_stores.csv")
+lon <- data$POINT_X
+lat <- data$POINT_Y
+name <- data$STORE_NAME
+m <- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lon,lat, clusterOptions = markerClusterOptions(),popup = name)
+m
+```
+
+Here is a map of every convenience store:
+
+```{r convenience_map}
+library(dplyr)
+data_conv <- data %>% filter(STORE_TYPE == "Convenience Store" | STORE_TYPE == "Convenience Store With Gas")
+lon <- data_conv$POINT_X
+lat <- data_conv$POINT_Y
+name <- data_conv$STORE_NAME
+m <- leaflet(data=data_conv) %>%
+  addTiles() %>%
+  addMarkers(lon,lat, clusterOptions = markerClusterOptions(),popup = name)
+m
+```
+
+7-Eleven represents the most common chain of convenience stores:
+
+```{r convenience_names}
+head(summary(data_conv$STORE_NAME))
+```
+
+Here is a map of every 7-Eleven:
+
+```{r sev_elev}
+library(dplyr)
+data_711 <- data %>% filter(STORE_NAME == "7-Eleven")
+lon <- data_711$POINT_X
+lat <- data_711$POINT_Y
+name <- data_711$STORE_NAME
+m <- leaflet(data=data_711) %>%
+  addTiles() %>%
+  addMarkers(lon,lat, clusterOptions = markerClusterOptions(),popup = name)
+m
+```
+
+Walmart has the top recorded sales volume, followed by Target and Whole Foods:
+
+```{r top_sellers}
+data_ordered <- data %>% group_by(STORE_NAME) %>% summarise(TOTAL_SALES = sum(SALES_VOL)) %>% arrange(desc(TOTAL_SALES))
+head(data_ordered)
+```
